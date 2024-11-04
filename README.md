@@ -1,3 +1,5 @@
+Github repo: https://github.com/qmer05/3semeksamen
+
 ### 3.3.2 Test the endpoints using a dev.http file. Document the output in your README.md file to verify the functionality.
 
 GET http://localhost:7000/api/trips
