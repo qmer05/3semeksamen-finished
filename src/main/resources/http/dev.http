@@ -1,0 +1,50 @@
+### Retrieve all
+GET {{URL}}/trips
+Content-Type: application/json
+
+### Retrieve a by ID
+GET {{URL}}/trips/2
+Content-Type: application/json
+
+### Create a new
+POST {{URL}}/trips/
+Content-Type: application/json
+
+{
+  "starttime": [11, 0],
+  "endtime": [15, 0],
+  "startposition": "Rome",
+  "name": "Running",
+  "price": 2000,
+  "category": "CITY",
+  "guide": null
+}
+
+### Update
+PUT {{URL}}/trips/2
+Content-Type: application/json
+
+{
+  "starttime": [16, 0],
+  "endtime": [17, 0],
+  "startposition": "Quebec",
+  "name": "Crossfit",
+  "price": 1000,
+  "category": "CITY",
+  "guide": null
+}
+
+### Delete
+DELETE {{URL}}/trips/4
+Content-Type: application/json
+
+### Add guide to a trip
+PUT {{URL}}/trips/1/guides/2
+Content-Type: application/json
+
+### Get trips by category
+GET {{URL}}/trips/category/CITY
+Content-Type: application/json
+
+### Get guide overview
+GET {{URL}}/trips/guides/totalprice

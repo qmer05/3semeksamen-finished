@@ -1,0 +1,109 @@
+### A simple get request to the test endpoint. No need for login
+GET {{url}}/auth/test/
+
+### Create a new user - this one will only get a USER role by default
+POST {{url}}/auth/register/
+
+{
+    "username": "user",
+    "password": "test123"
+}
+
+###
+POST {{url}}/auth/login/
+
+{
+    "username": "user",
+    "password": "test123"
+}
+
+> {%
+    client.global.set("jwt_token", response.body.token);
+    console.log("JWT Token:", client.global.get("jwt_token"));
+%}
+
+###
+POST {{url}}/auth/login/
+
+{
+    "username": "admin",
+    "password": "test123"
+}
+
+> {%
+    client.global.set("jwt_token", response.body.token);
+    console.log("JWT Token:", client.global.get("jwt_token"));
+%}
+
+###
+GET {{url}}/protected/user_demo/
+Accept: application/json
+Authorization: Bearer {{jwt_token}}
+
+###
+GET {{url}}/protected/admin_demo/
+Accept: application/json
+Authorization: Bearer {{jwt_token}}
+
+### UPDATE
+PUT  {{url}}/hotel/1
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{jwt_token}}
+
+{
+  "hotel_name": "Grand Bazar Hotel",
+  "hotel_address": "Silk Road 37",
+  "rooms": [
+    {
+      "room_number": 45,
+      "room_price": 5400
+    },
+    {
+      "room_number": 68,
+      "room_price": 6700
+    }
+  ]
+}
+
+### GET request with a header
+GET {{url}}/hotel/1
+Accept: application/json
+
+### DELETE
+DELETE {{url}}/hotel/1/
+Accept: application/json
+Authorization: Bearer {{jwt_token}}
+
+### POST example
+POST {{url}}/hotel/
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{jwt_token}}
+
+{
+  "hotel_name": "Ocean Breeze Hotel",
+  "hotel_address": "Seaside Blvd 12",
+  "rooms": [
+    {
+      "room_number": 101,
+      "room_price": 1500
+    },
+    {
+      "room_number": 202,
+      "room_price": 2200
+    }
+  ]
+}
+
+### Reset token
+GET {{url}}/auth/test/
+
+> {%
+    client.global.set("jwt_token", null);
+    console.log("JWT Token:", client.global.get("jwt_token"));
+%}
+
+### GET request with a header
+GET {{url}}
+Accept: application/json
