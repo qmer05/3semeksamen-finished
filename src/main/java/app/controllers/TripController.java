@@ -169,10 +169,6 @@ public class TripController {
         }
     }
 
-
-
-
-    /*
     public void getTripsByGuide(Context ctx) {
         try {
             // request
@@ -191,10 +187,4 @@ public class TripController {
             throw new ApiException(404, e.getMessage());
         }
     }
-
-     */
-
-
-
-
 }
