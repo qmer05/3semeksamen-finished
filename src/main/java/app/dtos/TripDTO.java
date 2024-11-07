@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
 @NoArgsConstructor
@@ -22,6 +23,8 @@ public class TripDTO {
     private Integer price;
     private Category category;
     private GuideDTO guide;
+
+    private List<ItemDTO> items;
 
     public TripDTO(Trip trip){
         this.id = trip.getId();

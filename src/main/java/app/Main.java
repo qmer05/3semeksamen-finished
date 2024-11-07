@@ -6,9 +6,12 @@ import app.config.Populator;
 import app.controllers.TripService;
 import app.daos.GuideDAO;
 import app.daos.TripDAO;
+import app.dtos.ItemDTO;
+import app.enums.Category;
 import jakarta.persistence.EntityManagerFactory;
 
 import java.security.Provider;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,9 +23,6 @@ public class Main {
 //        Populator populator = new Populator(tripDAO, guideDAO, emf);
 //        populator.populateGuides();
 //        populator.populateTrips();
-
-        TripService tripService = new TripService();
-        tripService.getPackingItemsByCategory("forest");
 
     }
 }

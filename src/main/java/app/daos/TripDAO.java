@@ -1,5 +1,7 @@
 package app.daos;
 
+import app.controllers.TripService;
+import app.dtos.ItemDTO;
 import app.dtos.TripDTO;
 import app.entities.Guide;
 import app.entities.Trip;
@@ -13,8 +15,10 @@ import java.util.List;
 public class TripDAO implements IDAO<TripDTO>, ITripGuideDAO {
 
     private final EntityManagerFactory emf;
+    private final TripService tripService;
 
     public TripDAO(EntityManagerFactory emf) {
+        this.tripService = new TripService();
         this.emf = emf;
     }
 
@@ -67,9 +71,7 @@ public class TripDAO implements IDAO<TripDTO>, ITripGuideDAO {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             Trip trip = em.find(Trip.class, id);
-            if (trip != null) {
-                em.remove(trip);
-            }
+            em.remove(trip);
             em.getTransaction().commit();
         }
     }
@@ -105,5 +107,11 @@ public class TripDAO implements IDAO<TripDTO>, ITripGuideDAO {
             query.setParameter("guideId", guideId);
             return query.getResultList();
         }
+    }
+
+    public int getTotalItemWeight(int tripId) {
+        TripDTO trip = getById(tripId);
+        List<ItemDTO> items = tripService.getPackingItemsByCategory(trip.getCategory());
+        return items.stream().mapToInt(ItemDTO::getWeightInGrams).sum();
     }
 }

@@ -1,6 +1,9 @@
 package app.controllers;
 
+import app.dtos.ItemDTO;
+import app.enums.Category;
 import app.exceptions.ApiException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,7 +15,6 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class TripService {
-
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -23,16 +25,10 @@ public class TripService {
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public void getPackingItemsByCategory(String category) {
+    public List<ItemDTO> getPackingItemsByCategory(Category category) {
         try {
-
-            // Validate category
-            if (!List.of("beach", "city", "forest", "lake", "sea", "snow").contains(category.toLowerCase())) {
-                throw new ApiException(400, "Invalid category: " + category);
-            }
-
             // Build the request URI
-            URI uri = new URI("https://packingapi.cphbusinessapps.dk/packinglist/" + category);
+            URI uri = new URI("https://packingapi.cphbusinessapps.dk/packinglist/" + category.toString().toLowerCase());
 
             // Create the request
             HttpRequest request = HttpRequest.newBuilder()
@@ -43,21 +39,19 @@ public class TripService {
             // Send the request
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            JsonNode rootNode = objectMapper.readTree(response.body());
+            JsonNode jsonNode = rootNode.get("items");
+
             // Check for successful response
             if (response.statusCode() == 200) {
-                // Parse the JSON response into PackingListResponse object
-                String prettyJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(
-                        objectMapper.readTree(response.body())
-                );
-                System.out.println(prettyJson);
+                // Parse JSON response to get PackingListResponse
+                return objectMapper.readValue(jsonNode.toString(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, ItemDTO.class));
             } else {
                 throw new ApiException(response.statusCode(), "Failed to fetch packing items for category: " + category);
             }
-        } catch (ApiException e) {
-            throw new ApiException(e.getStatusCode(), e.getMessage());
         } catch (Exception e) {
             throw new RuntimeException("An error occurred while fetching packing items", e);
         }
     }
 }
-

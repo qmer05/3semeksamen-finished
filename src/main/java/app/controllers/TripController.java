@@ -1,6 +1,7 @@
 package app.controllers;
 
 import app.daos.TripDAO;
+import app.dtos.ItemDTO;
 import app.dtos.TripDTO;
 import app.enums.Category;
 import app.exceptions.ApiException;
@@ -16,9 +17,11 @@ public class TripController {
 
     private final Logger log = LoggerFactory.getLogger(TripController.class);
     private final TripDAO tripDAO;
+    private final TripService tripService;
 
     public TripController(TripDAO tripDAO) {
         this.tripDAO = tripDAO;
+        this.tripService = new TripService();
     }
 
     public void getById(Context ctx) {
@@ -27,6 +30,10 @@ public class TripController {
             int id = Integer.parseInt(ctx.pathParam("id"));
             // DTO
             TripDTO tripDTO = tripDAO.getById(id);
+
+            // Fetch packing items by category
+            List<ItemDTO> items = tripService.getPackingItemsByCategory(tripDTO.getCategory());
+            tripDTO.setItems(items);
             // response
             ctx.res().setStatus(200);
             ctx.json(tripDTO, TripDTO.class);
@@ -87,6 +94,7 @@ public class TripController {
         try {
             // request
             int id = Integer.parseInt(ctx.pathParam("id"));
+
             tripDAO.delete(id);
             // response
             ctx.res().setStatus(204);
@@ -185,6 +193,18 @@ public class TripController {
         } catch (ApiException e) {
             log.error("404 {}", e.getMessage());
             throw new ApiException(404, e.getMessage());
+        }
+    }
+
+    public void getTotalWeight(Context ctx) {
+        try {
+            int tripId = Integer.parseInt(ctx.pathParam("id"));
+            int totalWeight = tripDAO.getTotalItemWeight(tripId);
+            ctx.res().setStatus(200);
+            ctx.json("The sum of the weights of all packing items for the trip: " + totalWeight);
+        } catch (Exception e) {
+            log.error("500 {}", e.getMessage());
+            throw new ApiException(500, e.getMessage());
         }
     }
 }

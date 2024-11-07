@@ -8,7 +8,13 @@ import app.daos.TripDAO;
 import app.dtos.GuideDTO;
 import app.dtos.TripDTO;
 import app.enums.Category;
+import app.security.controller.SecurityController;
+import app.security.daos.SecurityDAO;
+import app.security.entities.User;
+import app.security.exceptions.ValidationException;
+import dk.bugelhartmann.UserDTO;
 import io.javalin.Javalin;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.*;
 
@@ -20,7 +26,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class ResellerRoutesTest {
+class TripRouteTest {
+
+    private static UserDTO userDTO, adminDTO;
+    private static String userToken, adminToken;
+    private static SecurityDAO securityDAO;
+    private static SecurityController securityController;
 
     private Javalin app;
     private EntityManagerFactory emf;
@@ -43,6 +54,8 @@ class ResellerRoutesTest {
         tripDAO = new TripDAO(emf);
         guideDAO = new GuideDAO(emf);
         populator = new Populator(tripDAO, guideDAO, emf);
+        securityDAO = new SecurityDAO(emf);
+        securityController = SecurityController.getInstance();
     }
 
     @BeforeEach
@@ -59,12 +72,31 @@ class ResellerRoutesTest {
         g3 = guides.get(2);
         g4 = guides.get(3);
         g5 = guides.get(4);
+
+        UserDTO[] users = Populator.populateUsers(emf);
+        userDTO = users[0];
+        adminDTO = users[1];
+        try(EntityManager em = emf.createEntityManager()) {
+            User user = em.find(User.class, userDTO.getUsername());
+            System.out.println("user found : " + user);
+        }
+
+        try {
+            UserDTO verifiedUser = securityDAO.getVerifiedUser(userDTO.getUsername(), userDTO.getPassword());
+            UserDTO verifiedAdmin = securityDAO.getVerifiedUser(adminDTO.getUsername(), adminDTO.getPassword());
+            userToken = "Bearer " + securityController.createToken(verifiedUser);
+            adminToken = "Bearer " + securityController.createToken(verifiedAdmin);
+        }
+        catch (ValidationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @AfterEach
     void tearDown() {
         populator.cleanUpTrips();
         populator.cleanUpGuides();
+        populator.cleanUpUsers();
     }
 
     @AfterAll
@@ -90,6 +122,7 @@ class ResellerRoutesTest {
     void testGetTripById() {
         TripDTO tripDTO = given()
                 .when()
+                .header("Authorization", userToken, adminToken)
                 .get(BASE_URL + "/trips/2")
                 .then()
                 .statusCode(200)
@@ -107,6 +140,7 @@ class ResellerRoutesTest {
                 .contentType("application/json")
                 .body(trip)
                 .when()
+                .header("Authorization", adminToken)
                 .post(BASE_URL + "/trips")
                 .then()
                 .statusCode(201)
